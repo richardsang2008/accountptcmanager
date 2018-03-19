@@ -38,18 +38,14 @@ func GetAccountById(c *gin.Context) {
 		c.JSON(http.StatusOK, *accounts)
 	}
 }
-
-func UpdateAccountBySpecificFields(c *gin.Context) {
-	utility.MLog.Debug("Services UpdateAccountBySpecificFields starting ")
-	var account model.PogoAccount
-	c.BindJSON(&account)
+func locateAccount(account model.PogoAccount) []uint {
 	var updateAccountIDs []uint
 	if account.ID == 0 {
 		//get accounts by username
 		accounts, err := controller.GetAccountByUserName(account.Username)
 		if err != nil {
 			utility.MLog.Error("Services UpdateAccountBySpecificFields error " + err.Error())
-			c.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
+			return nil
 		} else {
 			if len(*accounts) > 0 {
 				for _, ac := range *accounts {
@@ -60,28 +56,76 @@ func UpdateAccountBySpecificFields(c *gin.Context) {
 	} else {
 		updateAccountIDs = append(updateAccountIDs, account.ID)
 	}
-	allok := true
-	for _, updateAccountID := range updateAccountIDs {
-		account.ID =updateAccountID
-		_, err := controller.UpdateAccountBySpecialFields(account)
-		if err != nil {
-			utility.MLog.Error("Services UpdateAccountBySpecificFields error " + err.Error())
-			allok = false
-			break
-		} else {
+	return updateAccountIDs
+}
+func UpdateAccountBySpecificFields(c *gin.Context) {
+	utility.MLog.Debug("Services UpdateAccountBySpecificFields starting ")
+	var account model.PogoAccount
+	c.BindJSON(&account)
+	updateAccountIDs := locateAccount(account)
+	if updateAccountIDs == nil {
+		c.JSON(http.StatusOK, gin.H{"username": account.Username})
+	} else {
+		allok := true
+		for _, updateAccountID := range updateAccountIDs {
+			account.ID = updateAccountID
+			_, err := controller.UpdateAccountBySpecialFields(account)
+			if err != nil {
+				utility.MLog.Error("Services UpdateAccountBySpecificFields error " + err.Error())
+				allok = false
+				break
+			} else {
+				utility.MLog.Debug("Services UpdateAccountBySpecificFields end ")
+			}
+		}
+		if len(updateAccountIDs) == 0 {
+			utility.MLog.Debug("Services UpdateAccountBySpecificFields return no records ")
 			utility.MLog.Debug("Services UpdateAccountBySpecificFields end ")
+			c.JSON(http.StatusOK, gin.H{"username": account.Username})
+		}
+		if allok == false {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "some errors"})
+		} else {
+			c.JSON(http.StatusOK, gin.H{"username": account.Username})
 		}
 	}
-	if len(updateAccountIDs) ==0 {
-		utility.MLog.Debug("Services UpdateAccountBySpecificFields return no records ")
-		utility.MLog.Debug("Services UpdateAccountBySpecificFields end ")
-		c.JSON(http.StatusOK,gin.H{"username": account.Username})
-	}
-	if allok == false {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "some errors"})
-	} else {
+
+}
+func ReleaseAccount(c *gin.Context) {
+	utility.MLog.Debug("Services ReleaseAccount starting ")
+	var account model.PogoAccount
+	c.BindJSON(&account)
+	updateAccountIDs := locateAccount(account)
+	if updateAccountIDs == nil {
 		c.JSON(http.StatusOK, gin.H{"username": account.Username})
+	} else {
+		allok := true
+		for _, updateAccountID := range updateAccountIDs {
+			account.ID = updateAccountID
+			controller.UpdateAccountSetSystemIdToNull(account)
+			/*_, err := controller.UpdateAccountSetSystemIdToNull(account)
+			if err != nil {
+				utility.MLog.Error("Services UpdateAccountBySpecificFields error " + err.Error())
+				allok = false
+				break
+			} else {
+				utility.MLog.Debug("Services ReleaseAccount end ")
+			}*/
+		}
+		if len(updateAccountIDs) == 0 {
+			utility.MLog.Debug("Services ReleaseAccount return no records ")
+			utility.MLog.Debug("Services ReleaseAccount end ")
+			c.JSON(http.StatusOK, gin.H{"username": account.Username})
+		} else {
+			utility.MLog.Debug("Services ReleaseAccount end ")
+			if allok == false {
+				c.JSON(http.StatusInternalServerError, gin.H{"message": "some errors"})
+			} else {
+				c.JSON(http.StatusOK, gin.H{"username": account.Username})
+			}
+		}
 	}
+
 }
 func GetAccountBySystemIdAndLevel(c *gin.Context) {
 	utility.MLog.Debug("Services GetAccountBySystemIdAndLevel starting ")

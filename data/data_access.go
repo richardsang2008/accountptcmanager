@@ -79,3 +79,6 @@ func (s *DataAccessLay) UpdateAccount(account model.PogoAccount) (*string, error
 	utility.MLog.Debug("DataAccessLay UpdateAccount end")
 	return &ret, nil
 }
+func (s *DataAccessLay) UpdateAccountSetSystemIdToNull(account model.PogoAccount) {
+	DataBase.Model(&account).Update("system_id",gorm.Expr("NULL"))
+}
