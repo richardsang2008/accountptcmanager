@@ -103,14 +103,6 @@ func ReleaseAccount(c *gin.Context) {
 		for _, updateAccountID := range updateAccountIDs {
 			account.ID = updateAccountID
 			controller.UpdateAccountSetSystemIdToNull(account)
-			/*_, err := controller.UpdateAccountSetSystemIdToNull(account)
-			if err != nil {
-				utility.MLog.Error("Services UpdateAccountBySpecificFields error " + err.Error())
-				allok = false
-				break
-			} else {
-				utility.MLog.Debug("Services ReleaseAccount end ")
-			}*/
 		}
 		if len(updateAccountIDs) == 0 {
 			utility.MLog.Debug("Services ReleaseAccount return no records ")
@@ -127,7 +119,7 @@ func ReleaseAccount(c *gin.Context) {
 	}
 
 }
-func GetAccountBySystemIdAndLevel(c *gin.Context) {
+func GetAccountBySystemIdAndLevelAndMark(c *gin.Context) {
 	utility.MLog.Debug("Services GetAccountBySystemIdAndLevel starting ")
 	query := c.Request.URL.Query()
 	fmt.Print(query)
@@ -138,51 +130,58 @@ func GetAccountBySystemIdAndLevel(c *gin.Context) {
 	bannedOrNewstr := query["banned_or_new"][0]
 	if systemId == "" || countstr == "" || minLevelstr == "" || maxLevelstr == "" || bannedOrNewstr == "" {
 		c.JSON(http.StatusBadRequest, gin.H{})
-	}
-	count, err := strconv.Atoi(countstr)
-	if err != nil {
-		utility.MLog.Error("input count wrong format", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{})
 	} else {
-		min, err := strconv.Atoi(minLevelstr)
+		count, err := strconv.Atoi(countstr)
 		if err != nil {
-			utility.MLog.Error("input min_level wrong format", err.Error())
+			utility.MLog.Error("input count wrong format", err.Error())
 			c.JSON(http.StatusBadRequest, gin.H{})
 		} else {
-			max, err := strconv.Atoi(maxLevelstr)
+			min, err := strconv.Atoi(minLevelstr)
 			if err != nil {
-				utility.MLog.Error("input max_level wrong format", err.Error())
+				utility.MLog.Error("input min_level wrong format", err.Error())
 				c.JSON(http.StatusBadRequest, gin.H{})
 			} else {
-				accounts, err := controller.GetNextUseableAccountByLevel(min, max)
+				max, err := strconv.Atoi(maxLevelstr)
 				if err != nil {
-					utility.MLog.Error("controller.GetNextUseableAccountByLevel error ", err.Error())
+					utility.MLog.Error("input max_level wrong format", err.Error())
 					c.JSON(http.StatusBadRequest, gin.H{})
 				} else {
-					msg := fmt.Sprintf("System ID [%s] requested %v accounts level %d-%d from server %s", systemId, count, min, max, c.Request.Host)
-					utility.MLog.Info(msg)
-					if accounts == nil {
-						utility.MLog.Warning("Could only deliver 0 accounts")
-						c.JSON(http.StatusOK, nil)
+					accounts, err := controller.GetNextUseableAccountByLevel(min, max)
+					if err != nil {
+						utility.MLog.Error("controller.GetNextUseableAccountByLevel error ", err.Error())
+						c.JSON(http.StatusBadRequest, gin.H{})
 					} else {
-						if count == 1 {
-							account := (*accounts)[0]
-							msg := fmt.Sprintf("Event for account %v: Got assigned to [%s]", account.Username, systemId)
-							utility.MLog.Info(msg)
-							utility.MLog.Debug("Services GetAccountBySystemIdAndLevel end ")
-							c.JSON(http.StatusOK, account)
+						msg := fmt.Sprintf("System ID [%s] requested %v accounts level %d-%d from server %s", systemId, count, min, max, c.Request.Host)
+						utility.MLog.Info(msg)
+						if accounts == nil {
+							utility.MLog.Warning("Could only deliver 0 accounts")
+							c.JSON(http.StatusOK, nil)
 						} else {
-							for _, account := range *accounts {
+							if count == 1 {
+								account := (*accounts)[0]
 								msg := fmt.Sprintf("Event for account %v: Got assigned to [%s]", account.Username, systemId)
 								utility.MLog.Info(msg)
+								utility.MLog.Debug("Services GetAccountBySystemIdAndLevel end ")
+								//mark this account
+								*account.SystemId = systemId
+								controller.UpdateAccountBySpecialFields(account)
+								c.JSON(http.StatusOK, account)
+							} else {
+								for _, account := range *accounts {
+									msg := fmt.Sprintf("Event for account %v: Got assigned to [%s]", account.Username, systemId)
+									utility.MLog.Info(msg)
+									*account.SystemId = systemId
+									controller.UpdateAccountBySpecialFields(account)
+								}
+								utility.MLog.Debug("Services GetAccountBySystemIdAndLevel end ")
+								c.JSON(http.StatusOK, *accounts)
 							}
-							utility.MLog.Debug("Services GetAccountBySystemIdAndLevel end ")
-							c.JSON(http.StatusOK, *accounts)
 						}
-
 					}
 				}
 			}
+
 		}
 	}
+
 }

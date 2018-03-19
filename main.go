@@ -23,7 +23,7 @@ func setupRouter() *gin.Engine {
 	router.POST("/account/add", services.AddAccount)
 	router.GET("/account/add", services.AddAccount)
 	router.POST("/account/update", services.UpdateAccountBySpecificFields)
-	router.GET("/account/request", services.GetAccountBySystemIdAndLevel)
+	router.GET("/account/request", services.GetAccountBySystemIdAndLevelAndMark)
 	router.POST("/account/release", services.ReleaseAccount)
 	//end of meet the old one
 
