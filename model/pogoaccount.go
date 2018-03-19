@@ -1,11 +1,15 @@
 package model
 
-import "time"
+import (
+	"time"
+	"github.com/jinzhu/gorm"
+)
 
 type PogoAccount struct {
-	ID                 uint      `json:"id"`
+	gorm.Model
+	//ID                 uint      `json:"id"`
 	AuthService        string     `json:"auth_service"`
-	Username           string     `json:"username"`
+	Username           string     `json:"username"  gorm:"type:varchar(100);unique_index"`
 	Password           string     `json:"password"`
 	Email              string     `json:"email"`
 	LastModified       *time.Time `json:"last_modified,string"`

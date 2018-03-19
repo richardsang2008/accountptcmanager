@@ -163,7 +163,7 @@ func GetAccountBySystemIdAndLevelAndMark(c *gin.Context) {
 								utility.MLog.Info(msg)
 								utility.MLog.Debug("Services GetAccountBySystemIdAndLevel end ")
 								//mark this account
-								*account.SystemId = systemId
+								account.SystemId = &systemId
 								controller.UpdateAccountBySpecialFields(account)
 								c.JSON(http.StatusOK, account)
 							} else {

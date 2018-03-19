@@ -18,7 +18,7 @@ import (
 )
 
 func setupRouter() *gin.Engine {
-	//gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	router.POST("/account/add", services.AddAccount)
 	router.GET("/account/add", services.AddAccount)
@@ -27,7 +27,8 @@ func setupRouter() *gin.Engine {
 	router.POST("/account/release", services.ReleaseAccount)
 	//end of meet the old one
 
-	router.POST("/account", services.AddAccount)
+	router.POST("/account/v1", services.AddAccount)
+	router.GET("/account/v1/:id", services.GetAccountById)
 	return router
 }
 

@@ -53,7 +53,7 @@ func GetNextUseableAccountByLevel(minlevel, maxlevel int) (*[]model.PogoAccount,
 		//filter the accounts not usable
 		ret := []model.PogoAccount{}
 		for _, account := range *accounts {
-			if account.Banned == false && (*account.SystemId == "" || account.SystemId ==nil) {
+			if account.Banned == false && ( account.SystemId ==nil) {
 				ret = append(ret, account)
 			}
 		}
