@@ -1,0 +1,12 @@
+{
+  "mysqldatabase":{
+    "host":"127.0.0.1:3306",
+    "password":"password",
+    "username":"mapuser",
+    "dbname":"pgpool"
+  },
+  "host":"127.0.0.1",
+  "port":"4242",
+  "logfile":"accountptcmanager.log",
+  "loglevel":1
+}
