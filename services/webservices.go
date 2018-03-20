@@ -8,6 +8,8 @@ import (
 	"github.com/richardsang2008/accountptcmanager/utility"
 	"net/http"
 	"strconv"
+	"strings"
+
 )
 
 func AddAccount(c *gin.Context) {
@@ -38,11 +40,11 @@ func GetAccountById(c *gin.Context) {
 		c.JSON(http.StatusOK, *accounts)
 	}
 }
-func locateAccount(account model.PogoAccount) []uint {
+func locateAccountByIdOrUserName(id uint,username string) []uint {
 	var updateAccountIDs []uint
-	if account.ID == 0 {
+	if id == 0 {
 		//get accounts by username
-		accounts, err := controller.GetAccountByUserName(account.Username)
+		accounts, err := controller.GetAccountByUserName(username)
 		if err != nil {
 			utility.MLog.Error("Services UpdateAccountBySpecificFields error " + err.Error())
 			return nil
@@ -54,7 +56,7 @@ func locateAccount(account model.PogoAccount) []uint {
 			}
 		}
 	} else {
-		updateAccountIDs = append(updateAccountIDs, account.ID)
+		updateAccountIDs = append(updateAccountIDs, id)
 	}
 	return updateAccountIDs
 }
@@ -62,7 +64,7 @@ func UpdateAccountBySpecificFields(c *gin.Context) {
 	utility.MLog.Debug("Services UpdateAccountBySpecificFields starting ")
 	var account model.PogoAccount
 	c.BindJSON(&account)
-	updateAccountIDs := locateAccount(account)
+	updateAccountIDs := locateAccountByIdOrUserName(account.ID,account.Username)
 	if updateAccountIDs == nil {
 		c.JSON(http.StatusOK, gin.H{"username": account.Username})
 	} else {
@@ -95,7 +97,7 @@ func ReleaseAccount(c *gin.Context) {
 	utility.MLog.Debug("Services ReleaseAccount starting ")
 	var account model.PogoAccount
 	c.BindJSON(&account)
-	updateAccountIDs := locateAccount(account)
+	updateAccountIDs := locateAccountByIdOrUserName(account.ID,account.Username)
 	if updateAccountIDs == nil {
 		c.JSON(http.StatusOK, gin.H{"username": account.Username})
 	} else {
@@ -119,10 +121,58 @@ func ReleaseAccount(c *gin.Context) {
 	}
 
 }
+func AddAccountWithLevel(c *gin.Context) {
+	utility.MLog.Debug("Services AddAccountWithLevel starting ")
+	level:=c.Param("level")
+	var account model.PogoAccount
+	c.BindJSON(&account)
+	//make sure the account does not exit the account
+	accountIDs:=locateAccountByIdOrUserName(0,account.Username)
+	if len(accountIDs) ==0 {
+		//good now add
+		lvl,erro := strconv.Atoi(level)
+		if erro !=nil {
+			lvl =1
+		}
+		account.Level = lvl
+		idstr,err:=controller.AddAccount(account)
+		if err !=nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		} else {
+			c.JSON(http.StatusOK, gin.H{"id": idstr})
+		}
+
+	} else {
+		c.JSON(http.StatusMethodNotAllowed, gin.H{"message":"Record already exit, can not add"})
+	}
+	utility.MLog.Debug("Services AddAccountWithLevel end ")
+}
+
+func GetAccountByUserName(c *gin.Context) {
+	utility.MLog.Debug("Services GetAccountByUserName starting ")
+	query := c.Request.URL.Query()
+	username := query["username"][0]
+	//make sure it is a single word
+	parts:=strings.Split(username," ")
+	if len(parts)!=1 {
+		c.JSON(http.StatusBadRequest, gin.H{"message":"bad input"})
+
+	} else {
+		ids:=locateAccountByIdOrUserName(0,username)
+		if len(ids)==1 {
+			accounts,_:=controller.GetAccount(ids[0])
+			c.JSON(http.StatusOK,(*accounts)[0])
+
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"message":"bad input"})
+		}
+	}
+	utility.MLog.Debug("Services GetAccountByUserName end ")
+}
+
 func GetAccountBySystemIdAndLevelAndMark(c *gin.Context) {
 	utility.MLog.Debug("Services GetAccountBySystemIdAndLevel starting ")
 	query := c.Request.URL.Query()
-	fmt.Print(query)
 	systemId := query["system_id"][0]
 	countstr := query["count"][0]
 	minLevelstr := query["min_level"][0]
