@@ -80,5 +80,6 @@ func (s *DataAccessLay) UpdateAccount(account model.PogoAccount) (*string, error
 	return &ret, nil
 }
 func (s *DataAccessLay) UpdateAccountSetSystemIdToNull(account model.PogoAccount) {
+	DataBase.Model(&account).Updates(account)
 	DataBase.Model(&account).Update("system_id",gorm.Expr("NULL"))
 }
