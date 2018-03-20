@@ -1,6 +1,7 @@
 package model
 
 type Config struct {
+	Debugmode bool `json:"debugmode"`
 	MysqlDatabase struct {
 		Host     string `json:"host"`
 		Password string `json:"password"`

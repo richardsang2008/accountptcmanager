@@ -18,8 +18,13 @@ import (
 
 )
 
-func setupRouter() *gin.Engine {
-	//gin.SetMode(gin.ReleaseMode)
+func setupRouter(debugmode bool) *gin.Engine {
+	if debugmode  {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	router := gin.Default()
 	router.POST("/account/add", services.AddAccount)
 	router.GET("/account/add", services.AddAccount)
@@ -61,7 +66,7 @@ func main() {
 	//defer f.Close()
 	controller.Data.New(config.MysqlDatabase.Username, config.MysqlDatabase.Password, config.MysqlDatabase.Host, config.MysqlDatabase.DBName)
 	defer controller.Data.Close()
-	router := setupRouter()
+	router := setupRouter(config.Debugmode)
 	address := fmt.Sprintf("%v:%s", config.Host, config.Port)
 	srv := &http.Server{
 		Addr:    address,
