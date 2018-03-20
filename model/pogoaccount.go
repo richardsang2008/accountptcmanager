@@ -14,7 +14,7 @@ type PogoAccount struct {
 	Email              string     `json:"email"`
 	LastModified       *time.Time `json:"last_modified,string"`
 	ReachLvl30Datetime *time.Time `json:"reach_lvl30_datetime,string"`
-	SystemId           *string     `json:"system_id"`
+	SystemId           string     `json:"system_id"`
 	AssignedAt         *time.Time `json:"assigned_at,string"`
 	Latitude           float32    `json:"latitude"`
 	Longitude          float32    `json:"longitude"`

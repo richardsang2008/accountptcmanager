@@ -137,12 +137,13 @@ func AddAccountWithLevel(c *gin.Context) {
 		account.Level = lvl
 		idstr,err:=controller.AddAccount(account)
 		if err !=nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			c.AbortWithStatus(http.StatusInternalServerError)
 		} else {
 			c.JSON(http.StatusOK, gin.H{"id": idstr})
 		}
 
 	} else {
+		account.ID = accountIDs[0]
 		controller.UpdateAccountBySpecialFields(account)
 		c.JSON(http.StatusOK, gin.H{"id": account.ID})
 	}
@@ -218,14 +219,14 @@ func GetAccountBySystemIdAndLevelAndMark(c *gin.Context) {
 								utility.MLog.Info(msg)
 								utility.MLog.Debug("Services GetAccountBySystemIdAndLevel end ")
 								//mark this account
-								account.SystemId = &systemId
+								account.SystemId = systemId
 								controller.UpdateAccountBySpecialFields(account)
 								c.JSON(http.StatusOK, account)
 							} else {
 								for _, account := range *accounts {
 									msg := fmt.Sprintf("Event for account %v: Got assigned to [%s]", account.Username, systemId)
 									utility.MLog.Info(msg)
-									*account.SystemId = systemId
+									account.SystemId = systemId
 									controller.UpdateAccountBySpecialFields(account)
 								}
 								utility.MLog.Debug("Services GetAccountBySystemIdAndLevel end ")
