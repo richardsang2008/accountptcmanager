@@ -32,6 +32,7 @@ func setupRouter() *gin.Engine {
 	router.GET("/ptcaccounts/accounts/v1/:id", services.GetAccountById)
 	router.GET("/ptcaccounts/accounts/v1/", services.GetAccountByUserName)
 	router.POST("/ptcaccounts/accounts/v1/lvl/:level", services.AddAccountWithLevel)
+	router.PATCH("/ptcaccounts/accounts/v1/release",services.ReleaseAccount)
 	return router
 }
 
