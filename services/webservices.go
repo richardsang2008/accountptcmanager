@@ -172,12 +172,16 @@ func GetAccountByUserName(c *gin.Context) {
 
 func GetAccountBySystemIdAndLevelAndMark(c *gin.Context) {
 	utility.MLog.Debug("Services GetAccountBySystemIdAndLevel starting ")
+	//getting from request.url as ?system_id='mybox'&count=1&min_level=0&max_level=29&banned_or_new=true
 	query := c.Request.URL.Query()
-	systemId := query["system_id"][0]
-	countstr := query["count"][0]
-	minLevelstr := query["min_level"][0]
-	maxLevelstr := query["max_level"][0]
-	bannedOrNewstr := query["banned_or_new"][0]
+	var systemId,countstr,minLevelstr,maxLevelstr,bannedOrNewstr string
+	if query != nil{
+		systemId = query["system_id"][0]
+		countstr = query["count"][0]
+		minLevelstr = query["min_level"][0]
+		maxLevelstr = query["max_level"][0]
+		bannedOrNewstr = query["banned_or_new"][0]
+	}
 	if systemId == "" || countstr == "" || minLevelstr == "" || maxLevelstr == "" || bannedOrNewstr == "" {
 		c.JSON(http.StatusBadRequest, gin.H{})
 	} else {
