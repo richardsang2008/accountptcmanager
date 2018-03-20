@@ -143,7 +143,8 @@ func AddAccountWithLevel(c *gin.Context) {
 		}
 
 	} else {
-		c.JSON(http.StatusMethodNotAllowed, gin.H{"message":"Record already exit, can not add"})
+		controller.UpdateAccountBySpecialFields(account)
+		c.JSON(http.StatusOK, gin.H{"id": account.ID})
 	}
 	utility.MLog.Debug("Services AddAccountWithLevel end ")
 }
