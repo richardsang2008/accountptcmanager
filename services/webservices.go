@@ -122,42 +122,55 @@ func ReleaseAccount(c *gin.Context) {
 	}
 
 }
-func AddAccountWithLevel(c *gin.Context) {
-	utility.MLog.Debug("Services AddAccountWithLevel starting ")
-	level:=c.Param("level")
-	var account model.PogoAccount
-	//set these fields so pg scout will pickup
-	account.Banned = false
-	account.BanFlag = false
-	account.Captcha = false
-	account.Shadowbanned = false
-	now:=time.Now()
-	account.LastModified = &now
-	account.Warn = false;
+func AddAccountWithLevelHandler(maxlevel int) gin.HandlerFunc{
+	fn:= func(c * gin.Context) {
+		utility.MLog.Debug("Services AddAccountWithLevel starting ")
+		level:=c.Param("level")
+		var account model.PogoAccount
+		//set these fields so pg scout will pickup
+		account.Banned = false
+		account.BanFlag = false
+		account.Captcha = false
+		account.Shadowbanned = false
+		now:=time.Now()
+		account.LastModified = &now
+		account.Warn = false;
 
-	c.BindJSON(&account)
-	//make sure the account does not exit the account
-	accountIDs:=locateAccountByIdOrUserName(0,account.Username)
-	if len(accountIDs) ==0 {
-		//good now add
+		c.BindJSON(&account)
+		//make sure the account does not exit the account
+		accountIDs:=locateAccountByIdOrUserName(0,account.Username)
 		lvl,erro := strconv.Atoi(level)
 		if erro !=nil {
 			lvl =1
 		}
-		account.Level = lvl
-		idstr,err:=controller.AddAccount(account)
-		if err !=nil {
-			c.AbortWithStatus(http.StatusInternalServerError)
-		} else {
-			c.JSON(http.StatusOK, gin.H{"id": idstr})
-		}
+		if len(accountIDs) ==0 {
+			//good now add
 
-	} else {
-		account.ID = accountIDs[0]
-		controller.UpdateAccountBySpecialFields(account)
-		c.JSON(http.StatusOK, gin.H{"id": account.ID})
+			account.Level = lvl
+			idstr,err:=controller.AddAccount(account)
+			if err !=nil {
+				c.AbortWithStatus(http.StatusInternalServerError)
+			} else {
+				if lvl == maxlevel{
+					//release account
+					controller.UpdateAccountSetSystemIdToNull(account)
+				}
+				c.JSON(http.StatusOK, gin.H{"id": idstr})
+			}
+
+		} else {
+			account.ID = accountIDs[0]
+			account.Level = lvl
+			controller.UpdateAccountBySpecialFields(account)
+			if lvl == maxlevel{
+				//release account
+				controller.UpdateAccountSetSystemIdToNull(account)
+			}
+			c.JSON(http.StatusOK, gin.H{"id": account.ID})
+		}
+		utility.MLog.Debug("Services AddAccountWithLevel end ")
 	}
-	utility.MLog.Debug("Services AddAccountWithLevel end ")
+	return gin.HandlerFunc(fn)
 }
 
 func GetAccountByUserName(c *gin.Context) {

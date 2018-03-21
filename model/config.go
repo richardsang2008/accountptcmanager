@@ -12,4 +12,5 @@ type Config struct {
 	Port string `json:"port"`
 	LogFile string `json:"logfile"`
 	LogLevel LogLevel `json:"loglevel"`
+	MaxLevel int `json:"maxlevel"`
 }

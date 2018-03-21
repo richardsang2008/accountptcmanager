@@ -18,7 +18,7 @@ import (
 
 )
 
-func setupRouter(debugmode bool) *gin.Engine {
+func setupRouter(debugmode bool, maxlevel int) *gin.Engine {
 	if debugmode  {
 		gin.SetMode(gin.DebugMode)
 	} else {
@@ -36,7 +36,7 @@ func setupRouter(debugmode bool) *gin.Engine {
 	router.POST("/ptcaccounts/accounts/v1", services.AddAccount)
 	router.GET("/ptcaccounts/accounts/v1/id/:id", services.GetAccountById)
 	router.GET("/ptcaccounts/accounts/v1/", services.GetAccountByUserName)
-	router.POST("/ptcaccounts/accounts/v1/lvl/:level", services.AddAccountWithLevel)
+	router.POST("/ptcaccounts/accounts/v1/lvl/:level", services.AddAccountWithLevelHandler(maxlevel))
 	router.PATCH("/ptcaccounts/accounts/v1/release",services.ReleaseAccount)
 	router.GET("/ptcaccounts/accounts/v1/request",services.GetAccountBySystemIdAndLevelAndMark)
 	return router
@@ -66,7 +66,7 @@ func main() {
 	//defer f.Close()
 	controller.Data.New(config.MysqlDatabase.Username, config.MysqlDatabase.Password, config.MysqlDatabase.Host, config.MysqlDatabase.DBName)
 	defer controller.Data.Close()
-	router := setupRouter(config.Debugmode)
+	router := setupRouter(config.Debugmode,config.MaxLevel)
 	address := fmt.Sprintf("%v:%s", config.Host, config.Port)
 	srv := &http.Server{
 		Addr:    address,
