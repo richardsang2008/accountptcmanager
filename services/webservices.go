@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"time"
 )
 
 func AddAccount(c *gin.Context) {
@@ -125,6 +126,15 @@ func AddAccountWithLevel(c *gin.Context) {
 	utility.MLog.Debug("Services AddAccountWithLevel starting ")
 	level:=c.Param("level")
 	var account model.PogoAccount
+	//set these fields so pg scout will pickup
+	account.Banned = false
+	account.BanFlag = false
+	account.Captcha = false
+	account.Shadowbanned = false
+	now:=time.Now()
+	account.LastModified = &now
+	account.Warn = false;
+
 	c.BindJSON(&account)
 	//make sure the account does not exit the account
 	accountIDs:=locateAccountByIdOrUserName(0,account.Username)
